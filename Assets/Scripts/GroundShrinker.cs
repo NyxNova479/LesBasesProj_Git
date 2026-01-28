@@ -28,12 +28,13 @@ public class GroundShrinker : MonoBehaviour
 
     private IEnumerator BlinkAndDie()
     {
-        for (int i = 0; i <= 3; i++)
+        for (int i = 0; i <= 2; i++)
         {
+            
             gameObject.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 0);
             yield return new WaitForSeconds(0.5f);
             gameObject.GetComponent<Renderer>().material.color = new Color(0, 0, 0, 255);
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(0.5f);
 
         }
         Destroy(gameObject);

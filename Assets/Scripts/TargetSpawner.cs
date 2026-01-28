@@ -12,14 +12,12 @@ public class TargetSpawner : MonoBehaviour
 
     private Transform mousePosition;
     public Transform currenttarget;
-    public Transform previousTarget;
 
     public Stack<Target> pile = new Stack<Target>();
 
     [SerializeField]
     private Camera _mainCamera;
 
-    private Target target;
     private GameObject targetObject;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -35,7 +33,19 @@ public class TargetSpawner : MonoBehaviour
         {
             HandleClick();
         }
+        try
+        {
 
+            currenttarget = pile.Peek().transform;
+
+        }
+
+
+
+        catch (InvalidOperationException)
+        {
+            Debug.Log("Aucune destination en vue!");
+        }
 
     }
 
@@ -55,19 +65,7 @@ public class TargetSpawner : MonoBehaviour
     {
 
         pile.Push(target.GetComponent<Target>());
-        try
-        {
-            
-            currenttarget = pile.Pop().transform;
 
-        }
-
-
-
-        catch (InvalidOperationException)
-        {
-            Debug.Log("Aucune destination en vue!");
-        }
         
     }
 }

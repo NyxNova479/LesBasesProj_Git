@@ -27,7 +27,7 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-
+        targetSpawner.pile.Pop();
         Destroy(collision.gameObject);
 
     }
