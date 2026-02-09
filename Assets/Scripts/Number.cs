@@ -5,6 +5,8 @@ public class Number : MonoBehaviour
    
     public float tempsConstruction = 0;
 
+    public int collectedTimes = 0;
+
     [SerializeField]
     private Spawn spawner;
 
@@ -24,5 +26,13 @@ public class Number : MonoBehaviour
     {
         return gameObject.GetComponent<Number>().tempsConstruction;
         
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.name == "Player")
+        {
+            collectedTimes += 1;
+        }
     }
 }

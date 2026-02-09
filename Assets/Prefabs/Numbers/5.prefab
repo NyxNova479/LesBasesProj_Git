@@ -554,11 +554,11 @@ GameObject:
   - component: {fileID: 6941409052624887269}
   m_Layer: 0
   m_Name: 5
-  m_TagString: Untagged
+  m_TagString: Number
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &5946482361789120336
 Transform:
   m_ObjectHideFlags: 0
@@ -592,6 +592,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tempsConstruction: 5
+  collectedTimes: 0
   spawner: {fileID: 0}
 --- !u!65 &1667529485119674096
 BoxCollider:
@@ -608,7 +609,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3

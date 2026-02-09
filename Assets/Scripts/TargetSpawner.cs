@@ -12,6 +12,8 @@ public class TargetSpawner : MonoBehaviour
 
     [SerializeField]
     private GameObject targetPrefab;
+
+
     
     private int moveLimit;
     private int moveCount = 0;
@@ -56,7 +58,7 @@ public class TargetSpawner : MonoBehaviour
             currenttarget = pile.Peek().transform;
 
         }
-        catch (InvalidOperationException)
+        catch (Exception)
         {
             Debug.Log("Aucune destination en vue!");
         }
@@ -69,6 +71,7 @@ public class TargetSpawner : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ~0))
         {
+
             targetObject = Instantiate(targetPrefab, hit.point, Quaternion.identity);
             AjouterALaPile(targetObject);
             

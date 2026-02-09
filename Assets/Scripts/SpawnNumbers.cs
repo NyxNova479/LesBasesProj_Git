@@ -15,9 +15,10 @@ public class Spawn : MonoBehaviour
 
     [SerializeField]
     private List<GameObject> numberPrefabs;
-
+    [SerializeField] private Transform[] spawnPositions = new Transform[5];
     [SerializeField] private TextMeshProUGUI _numbersUI;
-    [SerializeField] private TextMeshProUGUI _fileUI;
+    [SerializeField] private TextMeshProUGUI _waitingNumbUI;
+    [SerializeField] private TextMeshProUGUI _spawningNumbUI;
 
     [SerializeField]
     GameObject[] allNumberPrefabs;
@@ -80,24 +81,25 @@ public class Spawn : MonoBehaviour
 
     private void Update()
     {
-        UpdateFileUI();
+ 
     }
 
     // Update is called once per frame
     private void UpdateFileUI()
     {
-        if (file.Count == 0)
+        if (file.Count() == 0)
         {
-            _fileUI.text = "Rien";
+            _waitingNumbUI.text = "Rien";
             return;
         }
 
-        _fileUI.text = "";
+        _waitingNumbUI.text = "";
 
         foreach (Number number in file)
         {
-            _fileUI.text += number.name + "\n";
+            _waitingNumbUI.text += number.name + "\n";
         }
+        
     }
 
 
@@ -108,7 +110,9 @@ public class Spawn : MonoBehaviour
 
     private void SpawnGOFromOriginal(GameObject goOriginal)
     {
-        Instantiate(goOriginal, spawnerPoint.position, Quaternion.identity);
+        Transform rngPos = spawnPositions[UnityEngine.Random.Range(0, spawnPositions.Length)];
+        GameObject number = Instantiate(goOriginal, rngPos.position, Quaternion.identity);
+        number.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
     }
 
     public void AjouterALaFile(GameObject number)
@@ -122,6 +126,7 @@ public class Spawn : MonoBehaviour
         yield return new WaitForSeconds(number.GetComponent<Number>().getTempsConstruction());
         SpawnGOFromOriginal(number.gameObject);
         isSpawning = false;
+        _spawningNumbUI.text = "";
 
 
     }
@@ -130,9 +135,16 @@ public class Spawn : MonoBehaviour
     {
         if (isSpawning) return;
         if (file.Count == 0) return;
+        
+        else 
+        {
+            hasToSpawn = file.Dequeue().gameObject;
+            UpdateFileUI();
+            _spawningNumbUI.text = "" + hasToSpawn.name;
+            StartCoroutine(SpawnAfterDelay(hasToSpawn));
+            
 
-        hasToSpawn = file.Dequeue().gameObject;
-        StartCoroutine(SpawnAfterDelay(hasToSpawn));
+        }
     }
 
     public void OnClick()
@@ -141,7 +153,7 @@ public class Spawn : MonoBehaviour
         willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count() - 1)];
         AjouterALaFile(willSpawn);
 
-
+        UpdateFileUI();
         SpawnFromFile();
         
     }

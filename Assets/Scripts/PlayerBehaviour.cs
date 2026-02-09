@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -9,9 +11,13 @@ public class PlayerBehaviour : MonoBehaviour
     [SerializeField]
     private TargetSpawner targetSpawner;
 
+    Dictionary<Number, int> dico;
+
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        dico = new Dictionary<Number, int>();
         player = GetComponent<NavMeshAgent>();  
     }
 
@@ -27,8 +33,24 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-        targetSpawner.pile.Pop();
-        Destroy(collision.gameObject);
+        if(collision.tag == "Target")
+        {
+            targetSpawner.pile.Pop();
+            Destroy(collision.gameObject);
+        }
+        else if (collision.tag == "Number")
+        {
+            if (dico.ContainsKey(collision.GetComponent<Number>()))
+            {
+                int numbCount = collision.GetComponent<Number>().collectedTimes++;
+                dico[collision.GetComponent<Number>()] = numbCount;
+            }
+            else
+            {
+                dico.Add(collision.GetComponent<Number>(), collision.GetComponent<Number>().collectedTimes);
+            }
+            Destroy(collision.gameObject);
+        }
 
     }
 }

@@ -122,11 +122,11 @@ GameObject:
   - component: {fileID: 4680798901259345230}
   m_Layer: 0
   m_Name: 4
-  m_TagString: Untagged
+  m_TagString: Number
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &39339703181997420
 Transform:
   m_ObjectHideFlags: 0
@@ -158,6 +158,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tempsConstruction: 4
+  collectedTimes: 0
   spawner: {fileID: 0}
 --- !u!65 &2175413775976536562
 BoxCollider:
@@ -174,7 +175,7 @@ BoxCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
