@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.UIElements;
 using UnityEngine.UIElements;
+using System.Linq;
 
 
 public class Spawn : MonoBehaviour
@@ -28,46 +29,39 @@ public class Spawn : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-       //numbLengthLimit = UnityEngine.Random.Range(3, 9);
-       //numberPrefabs = new List<GameObject>(new GameObject[numbLengthLimit]);
+       numbLengthLimit = UnityEngine.Random.Range(3, 9);
+       numberPrefabs = new List<GameObject>(new GameObject[numbLengthLimit]);
        file = new Queue<Number>();
-       //for (int i = 0; i <= numbLengthLimit; i++)
-       //{
-       //
-       //    rng = UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1);
-       //    try
-       //    {
-       //        if (!numberPrefabs[rng])
-       //        {
-       //            numberPrefabs[i] = allNumberPrefabs[rng];
-       //        }
-       //        else
-       //        {
-       //            i--;
-       //            
-       //        }
-       //        
-       //    }
-       //    catch (ArgumentOutOfRangeException)
-       //    {
-       //        
-       //        for(int index = 0; index <= numberPrefabs.Count-1; index++)
-       //        {
-       //            if (numberPrefabs[index] == allNumberPrefabs[rng].gameObject)
-       //            {
-       //                numberPrefabs[index] = allNumberPrefabs[rng];
-       //                continue;
-       //
-       //            }
-       //            else
-       //            {
-       //                numberPrefabs[i] = allNumberPrefabs[rng];
-       //            }        
-       //        }
-       //        
-       //    }
-       //
-       //}
+       for (int i = 0; i <= numbLengthLimit-1; i++)
+       {
+       
+           rng = UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1);
+           try
+           {
+               if (numberPrefabs.Contains(allNumberPrefabs[rng].gameObject))
+               {
+                    i--;
+                    continue;
+               }
+               else
+               {
+                    numberPrefabs[i] = allNumberPrefabs[rng];
+
+               }
+               
+           }
+           catch (ArgumentOutOfRangeException)
+           {
+                if (i == numberPrefabs.Count())
+                {
+                    return;
+
+                }
+                i--;
+                continue;
+           }
+       
+       }
     }
 
     // Update is called once per frame
@@ -103,7 +97,7 @@ public class Spawn : MonoBehaviour
 
     public void OnClick()
     {
-        GameObject willSpawn = allNumberPrefabs[UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1)];
+        GameObject willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count() - 1)];
         AjouterALaFile(willSpawn);
         GameObject hasToSpawn = file.Dequeue().gameObject;
         SpawnNumber(hasToSpawn);

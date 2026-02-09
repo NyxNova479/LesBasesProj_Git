@@ -18,7 +18,7 @@ public class PlayerBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (player != null)
+        if (player != null && targetSpawner.currenttarget.position != null)
         {
             player.SetDestination(targetSpawner.currenttarget.position);
 

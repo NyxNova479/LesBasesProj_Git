@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
+using UnityEditor.UI;
+using UnityEngine.UI;
 
 
 public class TargetSpawner : MonoBehaviour
@@ -9,6 +12,12 @@ public class TargetSpawner : MonoBehaviour
 
     [SerializeField]
     private GameObject targetPrefab;
+    
+    private int moveLimit;
+    private int moveCount = 0;
+
+    [SerializeField]
+    private TextMeshProUGUI _movesUI;
 
     private Transform mousePosition;
     public Transform currenttarget;
@@ -24,14 +33,22 @@ public class TargetSpawner : MonoBehaviour
     void Start()
     {
         currenttarget = gameObject.transform;
+        moveLimit = 4;
+        _movesUI.text = "" + moveLimit;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && moveCount < moveLimit)
         {
+            moveCount++;
+            _movesUI.text = "" + (moveLimit - moveCount).ToString();
             HandleClick();
+        }
+        else
+        {
+
         }
         try
         {
@@ -39,9 +56,6 @@ public class TargetSpawner : MonoBehaviour
             currenttarget = pile.Peek().transform;
 
         }
-
-
-
         catch (InvalidOperationException)
         {
             Debug.Log("Aucune destination en vue!");
