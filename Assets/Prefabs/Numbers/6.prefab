@@ -337,7 +337,7 @@ GameObject:
   - component: {fileID: 9070094284526337600}
   - component: {fileID: 3026361018571571426}
   m_Layer: 0
-  m_Name: Numb6
+  m_Name: 6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
