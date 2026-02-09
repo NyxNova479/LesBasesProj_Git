@@ -2,6 +2,12 @@ using System.Collections.Generic;
 using UnityEditor.Rendering;
 using UnityEngine;
 using UnityEngine.AI;
+using Unity.UIElements;
+using UnityEngine.UIElements;
+using UnityEditor.UI;
+using UnityEngine.UI;
+using TMPro;
+using System;
 
 public class PlayerBehaviour : MonoBehaviour
 {
@@ -11,13 +17,14 @@ public class PlayerBehaviour : MonoBehaviour
     [SerializeField]
     private TargetSpawner targetSpawner;
 
-    Dictionary<Number, int> dico;
+    [SerializeField] private TextMeshProUGUI inventoryUI;
+    Dictionary<Number, int> inventory;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        dico = new Dictionary<Number, int>();
+        inventory = new Dictionary<Number, int>();
         player = GetComponent<NavMeshAgent>();  
     }
 
@@ -29,6 +36,16 @@ public class PlayerBehaviour : MonoBehaviour
             player.SetDestination(targetSpawner.currenttarget.position);
 
         }
+
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            OpenInventory();
+        }
+    }
+
+    private void OpenInventory()
+    {
+        throw new NotImplementedException();
     }
 
     private void OnTriggerEnter(Collider collision)
@@ -40,17 +57,22 @@ public class PlayerBehaviour : MonoBehaviour
         }
         else if (collision.tag == "Number")
         {
-            if (dico.ContainsKey(collision.GetComponent<Number>()))
-            {
-                int numbCount = collision.GetComponent<Number>().collectedTimes++;
-                dico[collision.GetComponent<Number>()] = numbCount;
-            }
-            else
-            {
-                dico.Add(collision.GetComponent<Number>(), collision.GetComponent<Number>().collectedTimes);
-            }
-            Destroy(collision.gameObject);
+            StoreNumber(collision.GetComponent<Number>());
         }
 
+    }
+
+    private void StoreNumber(Number number)
+    {
+        if (inventory.ContainsKey(number))
+        {
+            int numbCount = number.collectedTimes++;
+            inventory[number] = numbCount;
+        }
+        else
+        {
+            inventory.Add(number, number.collectedTimes);
+        }
+        Destroy(number.gameObject);
     }
 }

@@ -81,7 +81,15 @@ public class Spawn : MonoBehaviour
 
     private void Update()
     {
- 
+        if (Input.GetKeyDown(KeyCode.S))
+        {
+            willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count() - 1)];
+            AjouterALaFile(willSpawn);
+
+            UpdateFileUI();
+            
+        }
+        SpawnFromFile();
     }
 
     // Update is called once per frame
@@ -111,7 +119,7 @@ public class Spawn : MonoBehaviour
     private void SpawnGOFromOriginal(GameObject goOriginal)
     {
         Transform rngPos = spawnPositions[UnityEngine.Random.Range(0, spawnPositions.Length)];
-        GameObject number = Instantiate(goOriginal, rngPos.position, Quaternion.identity);
+        GameObject number = Instantiate(goOriginal, rngPos.position, Quaternion.Euler(90,0,0));
         number.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
     }
 
@@ -126,35 +134,31 @@ public class Spawn : MonoBehaviour
         yield return new WaitForSeconds(number.GetComponent<Number>().getTempsConstruction());
         SpawnGOFromOriginal(number.gameObject);
         isSpawning = false;
-        _spawningNumbUI.text = "";
+        if (file.Count() == 0) _spawningNumbUI.text = "";
+
 
 
     }
 
     private void SpawnFromFile()
     {
-        if (isSpawning) return;
-        if (file.Count == 0) return;
         
-        else 
+        if (file.Count() == 0) return;
+        
+        while (file.Count() > 0)
         {
-            hasToSpawn = file.Dequeue().gameObject;
-            UpdateFileUI();
-            _spawningNumbUI.text = "" + hasToSpawn.name;
-            StartCoroutine(SpawnAfterDelay(hasToSpawn));
-            
+            if (isSpawning) return;
+            else
+            {
+                hasToSpawn = file.Dequeue().gameObject;
+                UpdateFileUI();
+                _spawningNumbUI.text = "" + hasToSpawn.name;
+                StartCoroutine(SpawnAfterDelay(hasToSpawn));
 
+            }
         }
+
     }
 
-    public void OnClick()
-    {
 
-        willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count() - 1)];
-        AjouterALaFile(willSpawn);
-
-        UpdateFileUI();
-        SpawnFromFile();
-        
-    }
 }
