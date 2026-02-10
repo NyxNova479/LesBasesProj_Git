@@ -7,7 +7,7 @@ public class Number : MonoBehaviour
     [SerializeField] private NumberData data;
 
 
-    public int collectedTimes = 0;
+
 
     [SerializeField]
     private Spawn spawner;
@@ -22,11 +22,7 @@ public class Number : MonoBehaviour
         player = GameObject.Find("Player").GetComponent<PlayerBehaviour>();
     }
 
-    public float getTempsConstruction()
-    {
-        return gameObject.GetComponent<Number>().tempsConstruction;
-        
-    }
+
 
     private void OnCollisionEnter(Collision collision)
     {

@@ -14,14 +14,14 @@ public class Spawn : MonoBehaviour
 {
 
     [SerializeField]
-    private List<GameObject> numberPrefabs;
+    private List<NumberData> numberPrefabs;
     [SerializeField] private Transform[] spawnPositions = new Transform[5];
     [SerializeField] private TextMeshProUGUI _numbersUI;
     [SerializeField] private TextMeshProUGUI _waitingNumbUI;
     [SerializeField] private TextMeshProUGUI _spawningNumbUI;
 
     [SerializeField]
-    GameObject[] allNumberPrefabs;
+    NumberData[] allNumberPrefabs;
 
     private int numbLengthLimit;
     private int rng;
@@ -31,25 +31,25 @@ public class Spawn : MonoBehaviour
 
     public bool isSpawning = false;
 
-    Queue<Number> file;
+    Queue<NumberData> file;
 
 
-    private GameObject willSpawn;
-    private GameObject hasToSpawn;
+    private NumberData willSpawn;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
        numbLengthLimit = UnityEngine.Random.Range(3, 9);
-       numberPrefabs = new List<GameObject>(new GameObject[numbLengthLimit]);
-       file = new Queue<Number>();
+       numberPrefabs = new List<NumberData>(new NumberData[numbLengthLimit]);
+       file = new Queue<NumberData>();
        for (int i = 0; i <= numbLengthLimit-1; i++)
        {
        
            rng = UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1);
            try
            {
-               if (numberPrefabs.Contains(allNumberPrefabs[rng].gameObject))
+               if (numberPrefabs.Contains(allNumberPrefabs[rng]))
                {
                     i--;
                     continue;
@@ -73,7 +73,7 @@ public class Spawn : MonoBehaviour
            }
        
        }
-       foreach (GameObject prefabs in numberPrefabs)
+       foreach (NumberData prefabs in numberPrefabs)
        {
             _numbersUI.text += "" + prefabs.name + "\n";
        }
@@ -83,7 +83,7 @@ public class Spawn : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.S))
         {
-            willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count() - 1)];
+            willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count())];
             AjouterALaFile(willSpawn);
 
             UpdateFileUI();
@@ -103,7 +103,7 @@ public class Spawn : MonoBehaviour
 
         _waitingNumbUI.text = "";
 
-        foreach (Number number in file)
+        foreach (NumberData number in file)
         {
             _waitingNumbUI.text += number.name + "\n";
         }
@@ -113,26 +113,26 @@ public class Spawn : MonoBehaviour
 
     private void SpawnNumber(GameObject number)
     {
-        StartCoroutine(SpawnAfterDelay(number));
+        StartCoroutine(SpawnAfterDelay(number.GetComponent<NumberData>()));
     }
 
-    private void SpawnGOFromOriginal(GameObject goOriginal)
+    private void SpawnGOFromOriginal(NumberData goOriginal)
     {
         Transform rngPos = spawnPositions[UnityEngine.Random.Range(0, spawnPositions.Length)];
-        GameObject number = Instantiate(goOriginal, rngPos.position, Quaternion.Euler(90,0,0));
+        GameObject number = Instantiate(goOriginal.prefab, rngPos.position, Quaternion.Euler(90,0,0));
         number.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
     }
 
-    public void AjouterALaFile(GameObject number)
+    public void AjouterALaFile(NumberData number)
     {
-        file.Enqueue(number.GetComponent<Number>());
+        file.Enqueue(number);
     }
 
-    private IEnumerator SpawnAfterDelay(GameObject number)
+    private IEnumerator SpawnAfterDelay(NumberData numberData)
     {
         isSpawning = true;
-        yield return new WaitForSeconds(number.GetComponent<Number>().getTempsConstruction());
-        SpawnGOFromOriginal(number.gameObject);
+        yield return new WaitForSeconds(numberData.buildTime);
+        SpawnGOFromOriginal(numberData);
         isSpawning = false;
         if (file.Count() == 0) _spawningNumbUI.text = "";
 
@@ -150,7 +150,7 @@ public class Spawn : MonoBehaviour
             if (isSpawning) return;
             else
             {
-                hasToSpawn = file.Dequeue().gameObject;
+                NumberData hasToSpawn = file.Dequeue();
                 UpdateFileUI();
                 _spawningNumbUI.text = "" + hasToSpawn.name;
                 StartCoroutine(SpawnAfterDelay(hasToSpawn));

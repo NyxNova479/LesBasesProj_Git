@@ -5,5 +5,5 @@ public class NumberData : ScriptableObject
 {
     public string numberName;
     public float buildTime;
-    public Sprite icon;
+    public GameObject prefab;
 }

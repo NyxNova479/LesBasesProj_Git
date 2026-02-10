@@ -121,7 +121,7 @@ GameObject:
   - component: {fileID: 1655728399233395079}
   - component: {fileID: -2584697769740563301}
   m_Layer: 0
-  m_Name: 1
+  m_Name: Pref1
   m_TagString: Number
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -156,7 +156,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cba8c5492cc7a0c4dbd0b04fad0a2be3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tempsConstruction: 1
+  data: {fileID: 11400000, guid: 5fe176e1504b5be42b3b25e8dcff71fe, type: 2}
   collectedTimes: 0
   spawner: {fileID: 0}
 --- !u!65 &1655728399233395079

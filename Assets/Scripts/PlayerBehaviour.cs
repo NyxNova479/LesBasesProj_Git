@@ -8,11 +8,13 @@ using UnityEditor.UI;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using Unity.AI.Navigation;
 
 public class PlayerBehaviour : MonoBehaviour
 {
 
     private NavMeshAgent player;
+
 
     [SerializeField]
     private TargetSpawner targetSpawner;
@@ -39,7 +41,7 @@ public class PlayerBehaviour : MonoBehaviour
 
         }
 
-
+        
 
         if (Input.GetKeyDown(KeyCode.I))
         {
@@ -56,20 +58,15 @@ public class PlayerBehaviour : MonoBehaviour
 
     public void UpdateInventoryUI()
     {
+        inventoryUI.text = "";
 
-        
-        if (inventoryUI == null) return;
-
-
-
-        foreach (var item in inventory)
+        foreach (var entry in inventory)
         {
-            inventoryUI.text += $"{item.Key.numberName} x{item.Value} ";
+            NumberData data = entry.Key;
+            int quantity = entry.Value;
+
+            inventoryUI.text += $"{data.numberName} x{quantity}\n";
         }
-
-
-        //inventoryUI.text += "." + number.gameObject.name + " x" + number.collectedTimes + "\n";
-        //inventoryUI.text = inventoryUI.text.Replace("(Clone)", "");
 
     }
 
