@@ -19,13 +19,13 @@ public class PlayerBehaviour : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI inventoryUI;
     [SerializeField] private GameObject panel;
-    public Dictionary<Number, int> inventory;
+    public Dictionary<NumberData, int> inventory;
 
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        inventory = new Dictionary<Number, int>();
+        inventory = new Dictionary<NumberData, int>();
         player = GetComponent<NavMeshAgent>();
         panel.SetActive(false);
     }
@@ -54,25 +54,43 @@ public class PlayerBehaviour : MonoBehaviour
     }
 
 
-    public void UpdateInventoryUI(Number number)
+    public void UpdateInventoryUI()
     {
 
-        if (inventory.ContainsKey(number)) return;
-        else
+        
+        if (inventoryUI == null) return;
+
+
+
+        foreach (var item in inventory)
         {
-            inventoryUI.text += "." + number.gameObject.name + " x" + number.collectedTimes + "\n";
-            inventoryUI.text = inventoryUI.text.Replace("(Clone)", "");
+            inventoryUI.text += $"{item.Key.numberName} x{item.Value} ";
         }
+
+
+        //inventoryUI.text += "." + number.gameObject.name + " x" + number.collectedTimes + "\n";
+        //inventoryUI.text = inventoryUI.text.Replace("(Clone)", "");
+
     }
 
     private void OnTriggerEnter(Collider collision)
     {
-        if(collision.tag == "Target")
+        if(collision.CompareTag("Target"))
         {
             targetSpawner.pile.Pop();
             Destroy(collision.gameObject);
         }
 
+    }
+
+    public void AddNumber(NumberData data)
+    {
+        if (inventory.ContainsKey(data))
+            inventory[data]++;
+        else
+            inventory.Add(data, 1);
+
+        UpdateInventoryUI();
     }
 
 

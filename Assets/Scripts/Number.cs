@@ -1,10 +1,11 @@
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class Number : MonoBehaviour
 {
-   
-    public float tempsConstruction = 0;
+    [SerializeField] private NumberData data;
+
 
     public int collectedTimes = 0;
 
@@ -21,12 +22,6 @@ public class Number : MonoBehaviour
         player = GameObject.Find("Player").GetComponent<PlayerBehaviour>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     public float getTempsConstruction()
     {
         return gameObject.GetComponent<Number>().tempsConstruction;
@@ -38,25 +33,16 @@ public class Number : MonoBehaviour
 
         if(collision.gameObject.tag == "Player")
         {
-            collectedTimes += 1;
-            player.UpdateInventoryUI(gameObject.GetComponent<Number>());
+            
             StoreNumber(gameObject.GetComponent<Number>());
-            player.UpdateInventoryUI(gameObject.GetComponent<Number>());
-            gameObject.SetActive(false);
+            Destroy(gameObject);
+
         }
     }
 
     private void StoreNumber(Number number)
     {
-        if (player.inventory.ContainsKey(number))
-        {
-            player.inventory[number] += 1 ;
-            collectedTimes = player.inventory[number];
-        }
-        else
-        {
-            player.inventory.Add(number, number.collectedTimes);
-        }
 
+        player.AddNumber(data);
     }
 }

@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Spawner
   - Number
+  - Target
   layers:
   - Default
   - TransparentFX
