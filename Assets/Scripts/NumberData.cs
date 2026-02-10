@@ -4,6 +4,6 @@ using UnityEngine;
 public class NumberData : ScriptableObject
 {
     public string numberName;
-    public float buildTime;
+    public int buildTime;
     public GameObject prefab;
 }

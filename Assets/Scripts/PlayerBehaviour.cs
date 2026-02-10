@@ -35,7 +35,7 @@ public class PlayerBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (player != null &&  targetSpawner != null &&  targetSpawner.currenttarget != null)
+        if (player != null && player.isActiveAndEnabled &&  targetSpawner != null &&  targetSpawner.currenttarget != null)
         {
             player.SetDestination(targetSpawner.currenttarget.position);
 
@@ -68,6 +68,16 @@ public class PlayerBehaviour : MonoBehaviour
             inventoryUI.text += $"{data.numberName} x{quantity}\n";
         }
 
+    }
+
+    public int PlayerAnswer()
+    {
+        int score = 0;
+        foreach(KeyValuePair< NumberData, int> pair in inventory)
+        {
+            score += pair.Key.buildTime * pair.Value;
+        }
+        return score;
     }
 
     private void OnTriggerEnter(Collider collision)
