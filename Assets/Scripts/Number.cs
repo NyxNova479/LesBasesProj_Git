@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Number : MonoBehaviour
@@ -10,10 +11,14 @@ public class Number : MonoBehaviour
     [SerializeField]
     private Spawn spawner;
 
+
+    private PlayerBehaviour player;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         spawner = GameObject.Find("Spawner").GetComponent<Spawn>();
+        player = GameObject.Find("Player").GetComponent<PlayerBehaviour>();
     }
 
     // Update is called once per frame
@@ -30,9 +35,28 @@ public class Number : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if(collision.gameObject.name == "Player")
+
+        if(collision.gameObject.tag == "Player")
         {
             collectedTimes += 1;
+            player.UpdateInventoryUI(gameObject.GetComponent<Number>());
+            StoreNumber(gameObject.GetComponent<Number>());
+            player.UpdateInventoryUI(gameObject.GetComponent<Number>());
+            gameObject.SetActive(false);
         }
+    }
+
+    private void StoreNumber(Number number)
+    {
+        if (player.inventory.ContainsKey(number))
+        {
+            player.inventory[number] += 1 ;
+            collectedTimes = player.inventory[number];
+        }
+        else
+        {
+            player.inventory.Add(number, number.collectedTimes);
+        }
+
     }
 }
