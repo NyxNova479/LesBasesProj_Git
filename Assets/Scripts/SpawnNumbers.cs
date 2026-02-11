@@ -10,7 +10,7 @@ using System.Linq;
 using TMPro;
 
 
-public class Spawn : MonoBehaviour
+public class SpawnNumbers : MonoBehaviour
 {
 
     [SerializeField]
@@ -25,6 +25,7 @@ public class Spawn : MonoBehaviour
 
     private int numbLengthLimit;
     private int rng;
+    
 
     [SerializeField]
     private Transform spawnerPoint;
@@ -46,6 +47,8 @@ public class Spawn : MonoBehaviour
             return;
         }
     }
+
+
 
     private bool StartGame()
     {
@@ -88,6 +91,19 @@ public class Spawn : MonoBehaviour
         }
 
         return true;
+    }
+
+    public int partyMaxNumb()
+    {
+        int maxNumb = 0;
+        foreach (NumberData numberData in numberPrefabs)
+        {
+            if (maxNumb < numberData.buildTime)
+            {
+                maxNumb = numberData.buildTime;
+            }
+        }
+        return maxNumb;
     }
 
     private void Update()

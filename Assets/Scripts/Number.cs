@@ -10,7 +10,7 @@ public class Number : MonoBehaviour
 
 
     [SerializeField]
-    private Spawn spawner;
+    private SpawnNumbers spawner;
 
 
     private PlayerBehaviour player;
@@ -18,7 +18,7 @@ public class Number : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        spawner = GameObject.Find("Spawner").GetComponent<Spawn>();
+        spawner = GameObject.Find("Spawner").GetComponent<SpawnNumbers>();
         player = GameObject.Find("Player").GetComponent<PlayerBehaviour>();
     }
 

@@ -16,7 +16,7 @@ public class TargetSpawner : MonoBehaviour
 
     
     private int moveLimit;
-    private int moveCount = 0;
+    public int moveCount = 0;
 
     [SerializeField]
     private TextMeshProUGUI _movesUI;
