@@ -6,11 +6,16 @@ using UnityEngine.AI;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.UIElements;
+using System.Net;
+using System;
+using System.Linq;
+using System.Numerics;
 
 public class GameManager : MonoBehaviour
 {
 
     [SerializeField] private Transform camPos;
+    private UnityEngine.Vector3 startPos;
     [SerializeField] private GameObject ground;
     [SerializeField] private GameObject player;
     [SerializeField] private TextMeshProUGUI gameOverUI;
@@ -21,37 +26,106 @@ public class GameManager : MonoBehaviour
     private static Color32 CORRECTANSWER = new Color(0,50,0,255);
     private static Color32 WRONGANSWER = new Color(50,0,0,255);
 
-    private float delta = 0;
+    public float delta = 0;
+    private float answTimeLim = 5f;
     private bool isBlinking = false;
 
     private Dictionary<string, int[]> questions = new Dictionary<string, int[]>();
-    
+    private string currentQuestion = "";
+    private bool questionCreated = false;
+
+    private int membreA = 0;
+    private int membreB = 0;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        startPos = camPos.position;
         ground.GetComponent<Renderer>().material.color = BASECOLOR;
-        
+        questions.Add("Easy", new int[5]);
+        questions.Add("Medium", new int[10]);
+        questions.Add("Hard", new int[20]);
+        InitializeQuestions();
+        CreateQuestion();
+    }
+
+    private void InitializeQuestions()
+    {
+        for (int i = 0; i <= questions["Easy"].Length-1; i++)
+        {
+            questions["Easy"][i] = UnityEngine.Random.Range(1, 7);
+        }
+        for (int i = 0; i <= questions["Medium"].Length-1; i++)
+        {
+            questions["Medium"][i] = UnityEngine.Random.Range(1, 10);
+        }
+        for (int i = 0; i <= questions["Hard"].Length - 1; i++)
+        {
+            questions["Hard"][i] = UnityEngine.Random.Range(1, 15);
+        }
+    }
+
+    private void CreateQuestion()
+    {
+        questionsUI.text = "";
+        membreA = questions["Easy"][UnityEngine.Random.Range(0, questions["Easy"].Length)];
+        membreB = questions["Easy"][UnityEngine.Random.Range(0, questions["Easy"].Length)];
+        currentQuestion = $"{membreA} + {membreB}";
+        questionsUI.text += currentQuestion;
+        questionCreated = true;
     }
 
     // Update is called once per frame
     void Update()
     {
 
+
+        if (!questionCreated) CreateQuestion();
+
         if (camPos.position.y <= 10 && !isBlinking)
         {
             isBlinking = true;
-            StartCoroutine(BlinkAndDie());
+            StartCoroutine(DecideResult(membreA,membreB));
 
         }
         else if (camPos.position.y <= 10) delta = 0;
+        
         else
         {
-            delta += Time.deltaTime / 40f;
-            camPos.position = new Vector3(camPos.position.x, camPos.position.y - delta, camPos.position.z);
+            delta += Time.deltaTime;
+            MoveCamera(delta);
         }
+
+        
     }
 
-    private IEnumerator BlinkAndDie()
+    private void MoveCamera(float delta)
+    {
+        if (delta >= answTimeLim)
+        {
+            for (int i = 0; i <= delta; i++)
+            {
+                camPos.position = new UnityEngine.Vector3(camPos.position.x, camPos.position.y - i / 80f, camPos.position.z);
+            }
+        }
+        else return;
+    }
+
+    private int currentResult(int a, int b)
+    {
+        return a + b;
+    }
+
+    private bool isCorrect(int membreA, int membreB)
+    {
+        if(currentResult(membreA, membreB) == player.GetComponent<PlayerBehaviour>().PlayerAnswer())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private IEnumerator DecideResult(int a, int b)
     {
 
         
@@ -63,11 +137,28 @@ public class GameManager : MonoBehaviour
             yield return new WaitForSeconds(0.5f);
             ground.GetComponent<Renderer>().material.color = BASECOLOR;
         }
-        player.GetComponent<NavMeshAgent>().enabled = false;
-        ground.GetComponent<NavMeshSurface>().enabled = false;
-        ground.SetActive(false);
-        StartCoroutine(ShowGameOver());
-        
+        if (!isCorrect(a, b))
+        {
+            yield return new WaitForSeconds(1f);
+            ground.GetComponent<Renderer>().material.color = WRONGANSWER;
+            yield return new WaitForSeconds(1f);
+            player.GetComponent<NavMeshAgent>().enabled = false;
+            ground.GetComponent<NavMeshSurface>().enabled = false;
+            ground.SetActive(false);
+            StartCoroutine(ShowGameOver());
+        }
+        else
+        {
+            yield return new WaitForSeconds(1f);
+            ground.GetComponent<Renderer>().material.color = CORRECTANSWER;
+            camPos.position = startPos;
+            questionCreated = false;
+            yield return new WaitForSeconds(2f);
+            ground.GetComponent<Renderer>().material.color = BASECOLOR;
+            delta = 0;
+            player.GetComponent<PlayerBehaviour>().EmptyInventory();
+            player.transform.position = player.GetComponent<PlayerBehaviour>().startPos;
+        }
        
 
     }

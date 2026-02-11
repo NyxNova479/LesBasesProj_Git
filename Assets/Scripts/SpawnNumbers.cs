@@ -40,43 +40,54 @@ public class Spawn : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-       numbLengthLimit = UnityEngine.Random.Range(3, 9);
-       numberPrefabs = new List<NumberData>(new NumberData[numbLengthLimit]);
-       file = new Queue<NumberData>();
-       for (int i = 0; i <= numbLengthLimit-1; i++)
-       {
-       
-           rng = UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1);
-           try
-           {
-               if (numberPrefabs.Contains(allNumberPrefabs[rng]))
-               {
+        bool flowControl = StartGame();
+        if (!flowControl)
+        {
+            return;
+        }
+    }
+
+    private bool StartGame()
+    {
+        numbLengthLimit = UnityEngine.Random.Range(3, 9);
+        numberPrefabs = new List<NumberData>(new NumberData[numbLengthLimit]);
+        file = new Queue<NumberData>();
+        for (int i = 0; i <= numbLengthLimit - 1; i++)
+        {
+
+            rng = UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1);
+            try
+            {
+                if (numberPrefabs.Contains(allNumberPrefabs[rng]))
+                {
                     i--;
                     continue;
-               }
-               else
-               {
+                }
+                else
+                {
                     numberPrefabs[i] = allNumberPrefabs[rng];
 
-               }
-               
-           }
-           catch (ArgumentOutOfRangeException)
-           {
+                }
+
+            }
+            catch (ArgumentOutOfRangeException)
+            {
                 if (i == numberPrefabs.Count())
                 {
-                    return;
+                    return false;
 
                 }
                 i--;
                 continue;
-           }
-       
-       }
-       foreach (NumberData prefabs in numberPrefabs)
-       {
+            }
+
+        }
+        foreach (NumberData prefabs in numberPrefabs)
+        {
             _numbersUI.text += "" + prefabs.name + "\n";
-       }
+        }
+
+        return true;
     }
 
     private void Update()

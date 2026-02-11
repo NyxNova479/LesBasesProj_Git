@@ -23,6 +23,8 @@ public class PlayerBehaviour : MonoBehaviour
     [SerializeField] private GameObject panel;
     public Dictionary<NumberData, int> inventory;
 
+    public Vector3 startPos;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -30,6 +32,7 @@ public class PlayerBehaviour : MonoBehaviour
         inventory = new Dictionary<NumberData, int>();
         player = GetComponent<NavMeshAgent>();
         panel.SetActive(false);
+        startPos = gameObject.transform.position;
     }
 
     // Update is called once per frame
@@ -68,6 +71,12 @@ public class PlayerBehaviour : MonoBehaviour
             inventoryUI.text += $"{data.numberName} x{quantity}\n";
         }
 
+    }
+
+    public void EmptyInventory()
+    {
+        inventory = new Dictionary<NumberData, int>();
+        inventoryUI.text = "";
     }
 
     public int PlayerAnswer()
