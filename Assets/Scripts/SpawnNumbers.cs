@@ -117,6 +117,7 @@ public class SpawnNumbers : MonoBehaviour
             
         }
         SpawnFromFile();
+
     }
 
     // Update is called once per frame
