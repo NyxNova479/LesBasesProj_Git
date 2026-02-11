@@ -38,13 +38,13 @@ public class PlayerBehaviour : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (player != null && player.isActiveAndEnabled &&  targetSpawner != null &&  targetSpawner.currenttarget != null)
+        if (player != null && player.isActiveAndEnabled &&  targetSpawner != null && targetSpawner.currenttarget != null)
         {
             player.SetDestination(targetSpawner.currenttarget.position);
 
         }
 
-        
+
 
         if (Input.GetKeyDown(KeyCode.I))
         {

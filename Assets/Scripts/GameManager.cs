@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     private static Color32 WRONGANSWER = new Color(50, 0, 0, 255);
 
     public float delta = 0;
-    private float answTimeLim = 50f;
+    private float answTimeLim = 5f;
     private bool isBlinking = false;
 
     private Dictionary<string, int[]> questions = new Dictionary<string, int[]>();
@@ -136,7 +136,7 @@ public class GameManager : MonoBehaviour
     {
         if (delta >= answTimeLim)
         {
-            camPos.position = new Vector3(camPos.position.x,camPos.position.y - (delta / 40f),camPos.position.z);
+            camPos.position = new Vector3(camPos.position.x,camPos.position.y - (delta / 100f),camPos.position.z);
         }
     }
 
@@ -225,7 +225,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentDifficulty != Difficulty.Hard)
             currentDifficulty++;
-
+        ResetGame();
         ResumeGame();
     }
 
@@ -233,7 +233,7 @@ public class GameManager : MonoBehaviour
     {
         if (currentDifficulty != Difficulty.Easy)
             currentDifficulty--;
-
+        ResetGame();
         ResumeGame();
     }
 

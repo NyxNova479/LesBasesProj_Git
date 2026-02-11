@@ -48,10 +48,6 @@ public class TargetSpawner : MonoBehaviour
             _movesUI.text = "" + (moveLimit - moveCount).ToString();
             HandleClick();
         }
-        else
-        {
-
-        }
         try
         {
 
