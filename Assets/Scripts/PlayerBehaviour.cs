@@ -50,7 +50,7 @@ public class PlayerBehaviour : MonoBehaviour
         }
 
         // Undo avec Backspace
-        if (Input.GetKeyDown(KeyCode.Backspace))
+        if (Input.GetKeyDown(KeyCode.Backspace) && undoUsed<undoLimit)
         {
             UndoLastNumber();
         }

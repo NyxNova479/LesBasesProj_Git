@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: 5
   m_EditorClassIdentifier: 
   numberName: "N\xB05"
+  value: 5
   buildTime: 5
   prefab: {fileID: 9216533526897497137, guid: fc7bd3797382cd74592593a4268074c4, type: 3}

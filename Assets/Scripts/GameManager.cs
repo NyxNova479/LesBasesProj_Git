@@ -76,7 +76,7 @@ public class GameManager : MonoBehaviour
 
         timeUI.text = Mathf.Max(0, remaining).ToString("F0");
 
-        if (currentDifficulty == Difficulty.Easy && !solutionInjected && delta >= currentTimeLimit - 30f)
+        if (currentDifficulty == Difficulty.Easy && !solutionInjected && delta >= currentTimeLimit - (currentTimeLimit/2))
         {
             spawnNumbers.EnsureSolutionExists(correctResult, currentDifficulty);
             solutionInjected = true;
@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
         {
             camPos.position = new Vector3(
                 camPos.position.x,
-                camPos.position.y - (delta / 500f),
+                camPos.position.y - (delta / 5000f),
                 camPos.position.z);
         }
 
@@ -215,10 +215,10 @@ public class GameManager : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             ground.GetComponent<Renderer>().material.color = INVISIBLE;
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.5f);
 
             ground.GetComponent<Renderer>().material.color = BASECOLOR;
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         //  Si FAUX
