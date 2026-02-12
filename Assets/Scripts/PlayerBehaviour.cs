@@ -1,74 +1,65 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
-using Unity.AI.Navigation;
-using Unity.UIElements;
-using UnityEditor.Rendering;
-using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.AI;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
-using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerBehaviour : MonoBehaviour
 {
-
     private NavMeshAgent player;
 
-
-    [SerializeField]
-    private TargetSpawner targetSpawner;
-    [SerializeField]
-    private GameManager gameManager;
-
+    [SerializeField] private TargetSpawner targetSpawner;
+    [SerializeField] private GameManager gameManager;
 
     [SerializeField] private TextMeshProUGUI inventoryUI;
     [SerializeField] private GameObject panel;
+
     public Dictionary<NumberData, int> inventory = new Dictionary<NumberData, int>();
+
+    // Stack utilisée pour le UNDO (respect structure imposée)
     private Stack<NumberData> inventoryHistory = new Stack<NumberData>();
 
     public Vector3 startPos;
 
+    private int undoUsed;
+    private int undoLimit;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         player = GetComponent<NavMeshAgent>();
         panel.SetActive(false);
-        startPos = gameObject.transform.position;
+        startPos = transform.position;
+        ConfigureUndo(gameManager.currentDifficulty);
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (player != null && player.isActiveAndEnabled &&  targetSpawner != null && targetSpawner.currenttarget != null)
+        if (player != null &&
+            player.isActiveAndEnabled &&
+            targetSpawner != null &&
+            targetSpawner.currenttarget != null)
         {
             player.SetDestination(targetSpawner.currenttarget.position);
-
         }
 
-        if (Input.GetKeyDown(KeyCode.I) && gameManager.currentDifficulty != GameManager.Difficulty.Hard)
+        // Inventaire visible sauf en Hard
+        if (Input.GetKeyDown(KeyCode.I) &&
+            gameManager.currentDifficulty != GameManager.Difficulty.Hard)
         {
-            ShowInventory();
+            ToggleInventory();
         }
-        
+
+        // Undo avec Backspace
         if (Input.GetKeyDown(KeyCode.Backspace))
         {
             UndoLastNumber();
-            UpdateInventoryUI();
         }
-
-
-
     }
 
-    private void ShowInventory()
+    private void ToggleInventory()
     {
-        
         panel.SetActive(!panel.activeSelf);
     }
-
 
     public void UpdateInventoryUI()
     {
@@ -76,58 +67,91 @@ public class PlayerBehaviour : MonoBehaviour
 
         foreach (var entry in inventory)
         {
-            NumberData data = entry.Key;
-            int quantity = entry.Value;
-
-            inventoryUI.text += $"{data.numberName} x{quantity}\n";
+            inventoryUI.text += $"{entry.Key.numberName} x{entry.Value}\n";
         }
-
     }
 
     public void EmptyInventory()
     {
-        inventory = new Dictionary<NumberData, int>();
+        inventory.Clear();
+        inventoryHistory.Clear();
         inventoryUI.text = "";
     }
 
+    // Calcule la réponse du joueur
     public int PlayerAnswer()
     {
-        int score = 0;
-        foreach(KeyValuePair< NumberData, int> pair in inventory)
+        int total = 0;
+
+        foreach (var pair in inventory)
         {
-            score += pair.Key.buildTime * pair.Value;
+            total += pair.Key.value * pair.Value; ;
         }
-        return score;
+
+        return total;
     }
 
     private void OnTriggerEnter(Collider collision)
     {
-        if(collision.CompareTag("Target"))
+        if (collision.CompareTag("Target"))
         {
-            targetSpawner.pile.Pop();
+            // Sécurité pile
+            if (targetSpawner.pile.Count > 0)
+                targetSpawner.pile.Pop();
+
             Destroy(collision.gameObject);
         }
-
-
     }
 
     public void AddNumber(NumberData data)
     {
-        if (inventory.ContainsKey(data)) inventory[data]++;
-        else inventory.Add(data, 1);
+        if (data == null) return;
+
+        if (inventory.ContainsKey(data))
+            inventory[data]++;
+        else
+            inventory.Add(data, 1);
+
         inventoryHistory.Push(data);
+
         UpdateInventoryUI();
     }
 
     public void UndoLastNumber()
     {
-        if (inventoryHistory.Count == 0) return;
+        if (inventoryHistory.Count == 0)
+            return;
 
-        NumberData lastNumber = inventoryHistory.Pop();
+        NumberData last = inventoryHistory.Pop();
 
-        inventory[lastNumber]--;
+        if (inventory.ContainsKey(last))
+        {
+            inventory[last]--;
 
-        if (inventory[lastNumber] <= 0) inventory.Remove(lastNumber);
+            if (inventory[last] <= 0)
+                inventory.Remove(last);
+        }
+
+        UpdateInventoryUI();
     }
 
+    public void ConfigureUndo(GameManager.Difficulty difficulty)
+    {
+        undoUsed = 0;
+
+        switch (difficulty)
+        {
+            case GameManager.Difficulty.Easy:
+                undoLimit = int.MaxValue;
+                break;
+
+            case GameManager.Difficulty.Medium:
+                undoLimit = 2;
+                break;
+
+            case GameManager.Difficulty.Hard:
+                undoLimit = 0;
+                break;
+        }
+    }
 }

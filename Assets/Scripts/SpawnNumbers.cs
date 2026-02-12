@@ -1,142 +1,176 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.UIElements;
-using UnityEngine.UIElements;
-using UnityEditor.UI;
-using UnityEngine.UI;
-using System.Linq;
 using TMPro;
-
+using System.Linq;
 
 public class SpawnNumbers : MonoBehaviour
 {
+    [Header("Prefabs")]
+    [SerializeField] private NumberData[] allNumberPrefabs;
 
-
-
-    [SerializeField]
-    private List<NumberData> numberPrefabs;
+    private List<NumberData> numberPrefabs = new List<NumberData>();
     private List<GameObject> spawnedNumb = new List<GameObject>();
-    [SerializeField] private Transform[] spawnPositions = new Transform[5];
+
+    [Header("Spawn")]
+    [SerializeField] private Transform[] spawnPositions;
+
+    [Header("UI")]
     [SerializeField] private TextMeshProUGUI _numbersUI;
     [SerializeField] private TextMeshProUGUI _waitingNumbUI;
     [SerializeField] private TextMeshProUGUI _spawningNumbUI;
 
-    [SerializeField]
-    NumberData[] allNumberPrefabs;
+    private Queue<NumberData> file = new Queue<NumberData>();
 
-    private int numbLengthLimit;
-    private int rng;
-    
+    private bool isSpawning = false;
 
-    [SerializeField]
-    private Transform spawnerPoint;
-
-    public bool isSpawning = false;
-
-    Queue<NumberData> file;
-
-
-    private NumberData willSpawn;
-
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        bool flowControl = StartGame();
-        if (!flowControl)
+        GenerateAvailableNumbers();
+    }
+
+    // --------------------------------------------------
+    // 🔹 GÉNÉRATION DES NOMBRES DISPONIBLES
+    // --------------------------------------------------
+
+    public void GenerateAvailableNumbers()
+    {
+        numberPrefabs.Clear();
+        _numbersUI.text = "";
+
+        int count = UnityEngine.Random.Range(4, 8);
+
+        List<NumberData> tempList = new List<NumberData>(allNumberPrefabs);
+
+        for (int i = 0; i < count; i++)
         {
+            if (tempList.Count == 0) break;
+
+            int rng = UnityEngine.Random.Range(0, tempList.Count);
+            numberPrefabs.Add(tempList[rng]);
+            tempList.RemoveAt(rng);
+        }
+
+        foreach (NumberData data in numberPrefabs)
+        {
+            _numbersUI.text += data.numberName + "\n";
+        }
+    }
+
+    // --------------------------------------------------
+    // 🔹 GARANTIT QUE LA SOLUTION EXISTE
+    // --------------------------------------------------
+
+    public void EnsureSolutionExists(int solution, GameManager.Difficulty difficulty)
+    {
+        if (difficulty == GameManager.Difficulty.Hard)
             return;
+        else if (difficulty == GameManager.Difficulty.Medium)
+            return;
+
+        NumberData match = allNumberPrefabs.FirstOrDefault(x => x.buildTime == solution);
+
+        if (match != null)
+        {
+            file.Enqueue(match);
+            UpdateFileUI();
         }
     }
 
+    // --------------------------------------------------
+    // 🔹 UPDATE
+    // --------------------------------------------------
 
-
-    private bool StartGame()
-    {
-        numbLengthLimit = UnityEngine.Random.Range(3, 9);
-        numberPrefabs = new List<NumberData>(new NumberData[numbLengthLimit]);
-        file = new Queue<NumberData>();
-        for (int i = 0; i <= numbLengthLimit - 1; i++)
-        {
-
-            rng = UnityEngine.Random.Range(0, allNumberPrefabs.Length - 1);
-            try
-            {
-                if (numberPrefabs.Contains(allNumberPrefabs[rng]))
-                {
-                    i--;
-                    continue;
-                }
-                else
-                {
-                    numberPrefabs[i] = allNumberPrefabs[rng];
-
-                }
-
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                if (i == numberPrefabs.Count())
-                {
-                    return false;
-
-                }
-                i--;
-                continue;
-            }
-
-        }
-        foreach (NumberData prefabs in numberPrefabs)
-        {
-            _numbersUI.text += "" + prefabs.name + "\n";
-        }
-
-        return true;
-    }
-
-    public int partyMaxNumb()
-    {
-        int maxNumb = 0;
-        foreach (NumberData numberData in numberPrefabs)
-        {
-            if (maxNumb < numberData.buildTime)
-            {
-                maxNumb = numberData.buildTime;
-            }
-        }
-        return maxNumb;
-    }
-
-    private void Update()
+    void Update()
     {
         if (Input.GetKeyDown(KeyCode.S))
         {
-            willSpawn = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count())];
-            AjouterALaFile(willSpawn);
-
-            UpdateFileUI();
-
+            AddRandomToQueue();
         }
+
         SpawnFromFile();
-
-
-
     }
+
+    private void AddRandomToQueue()
+    {
+        if (numberPrefabs.Count == 0) return;
+
+        NumberData random = numberPrefabs[UnityEngine.Random.Range(0, numberPrefabs.Count)];
+        file.Enqueue(random);
+        UpdateFileUI();
+    }
+
+    // --------------------------------------------------
+    // 🔹 SPAWN LOGIC (QUEUE)
+    // --------------------------------------------------
+
+    private void SpawnFromFile()
+    {
+        if (file.Count == 0 || isSpawning)
+            return;
+
+        NumberData toSpawn = file.Dequeue();
+        UpdateFileUI();
+
+        _spawningNumbUI.text = toSpawn.numberName;
+        StartCoroutine(SpawnAfterDelay(toSpawn));
+    }
+
+    private IEnumerator SpawnAfterDelay(NumberData data)
+    {
+        isSpawning = true;
+
+        yield return new WaitForSeconds(data.buildTime);
+
+        SpawnGOFromOriginal(data);
+
+        isSpawning = false;
+
+        if (file.Count == 0)
+            _spawningNumbUI.text = "";
+    }
+
+    private void SpawnGOFromOriginal(NumberData original)
+    {
+        Transform rngPos = spawnPositions[UnityEngine.Random.Range(0, spawnPositions.Length)];
+
+        GameObject number = Instantiate(original.prefab,
+            rngPos.position,
+            Quaternion.Euler(90, 0, 0));
+
+        number.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+
+        spawnedNumb.Add(number);
+    }
+
+    // --------------------------------------------------
+    // 🔹 CLEAR ENTRE QUESTIONS
+    // --------------------------------------------------
 
     public void ClearNumbers()
     {
-        foreach (GameObject prefabs in spawnedNumb)
+        foreach (GameObject obj in spawnedNumb)
         {
-            Destroy(prefabs);
+            if (obj != null)
+                Destroy(obj);
         }
+
+        spawnedNumb.Clear();
+        file.Clear();
+        UpdateFileUI();
+        _spawningNumbUI.text = "";
+
+        GenerateAvailableNumbers();
     }
 
-    // Update is called once per frame
+    // --------------------------------------------------
+    // 🔹 UTILS
+    // --------------------------------------------------
+
     private void UpdateFileUI()
     {
-        if (file.Count() == 0)
+        if (file.Count == 0)
         {
             _waitingNumbUI.text = "Rien";
             return;
@@ -146,63 +180,20 @@ public class SpawnNumbers : MonoBehaviour
 
         foreach (NumberData number in file)
         {
-            _waitingNumbUI.text += number.name + "\n";
+            _waitingNumbUI.text += number.numberName + "\n";
         }
-        
     }
 
-
-    private void SpawnNumber(GameObject number)
+    public int partyMaxNumb()
     {
-        StartCoroutine(SpawnAfterDelay(number.GetComponent<NumberData>()));
-    }
+        int max = 0;
 
-    private void SpawnGOFromOriginal(NumberData goOriginal)
-    {
-        Transform rngPos = spawnPositions[UnityEngine.Random.Range(0, spawnPositions.Length)];
-        GameObject number = Instantiate(goOriginal.prefab, rngPos.position, Quaternion.Euler(90,0,0));
-        number.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
-        spawnedNumb.Add(number);
-    }
-
-    public void AjouterALaFile(NumberData number)
-    {
-        file.Enqueue(number);
-    }
-
-    private IEnumerator SpawnAfterDelay(NumberData numberData)
-    {
-        isSpawning = true;
-        yield return new WaitForSeconds(numberData.buildTime);
-        SpawnGOFromOriginal(numberData);
-        isSpawning = false;
-        if (file.Count() == 0) _spawningNumbUI.text = "";
-        
-
-
-
-    }
-
-    private void SpawnFromFile()
-    {
-        
-        if (file.Count() == 0) return;
-        
-        while (file.Count() > 0)
+        foreach (NumberData data in numberPrefabs)
         {
-            if (isSpawning) return;
-            else
-            {
-                NumberData hasToSpawn = file.Dequeue();
-                UpdateFileUI();
-                _spawningNumbUI.text = "" + hasToSpawn.name;
-                StartCoroutine(SpawnAfterDelay(hasToSpawn));
-                
-
-            }
+            if (data.value > max)
+                max = data.value;
         }
 
+        return max;
     }
-
-
 }

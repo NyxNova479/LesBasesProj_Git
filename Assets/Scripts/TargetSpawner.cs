@@ -1,84 +1,98 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
-using UnityEditor.UI;
-using UnityEngine.UI;
-
 
 public class TargetSpawner : MonoBehaviour
 {
+    [SerializeField] private GameObject targetPrefab;
+    [SerializeField] private Camera _mainCamera;
+    [SerializeField] public TextMeshProUGUI _movesUI;
 
-    [SerializeField]
-    private GameObject targetPrefab;
-
-
-    
-    public int moveLimit;
+    public int moveLimit = 4;
     public int moveCount = 0;
 
-    [SerializeField]
-    public TextMeshProUGUI _movesUI;
-
-    private Transform mousePosition;
     public Transform currenttarget;
 
+    // Structure imposée : STACK
     public Stack<Target> pile = new Stack<Target>();
-
-    [SerializeField]
-    private Camera _mainCamera;
 
     private GameObject targetObject;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        currenttarget = gameObject.transform;
-        moveLimit = 4;
-        _movesUI.text = "" + moveLimit;
+        currenttarget = transform;
+        UpdateMovesUI();
     }
 
-    // Update is called once per frame
     void Update()
+    {
+        HandleInput();
+        UpdateCurrentTarget();
+    }
+
+    private void HandleInput()
     {
         if (Input.GetMouseButtonDown(0) && moveCount < moveLimit)
         {
             moveCount++;
-            _movesUI.text = "" + (moveLimit - moveCount).ToString();
-            HandleClick();
+            UpdateMovesUI();
+            SpawnTargetAtClick();
         }
-        try
-        {
-
-            currenttarget = pile.Peek().transform;
-
-        }
-        catch (Exception)
-        {
-            Debug.Log("Aucune destination en vue!");
-        }
-
     }
 
-    private void HandleClick()
+    private void SpawnTargetAtClick()
     {
         Ray ray = _mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
-        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ~0))
+        if (Physics.Raycast(ray, out RaycastHit hit))
         {
-
             targetObject = Instantiate(targetPrefab, hit.point, Quaternion.identity);
-            AjouterALaPile(targetObject);
-            
+            AddToStack(targetObject);
         }
     }
 
-    private void AjouterALaPile(GameObject target)
+    private void AddToStack(GameObject target)
     {
+        Target targetComponent = target.GetComponent<Target>();
 
-        pile.Push(target.GetComponent<Target>());
+        if (targetComponent != null)
+        {
+            pile.Push(targetComponent);
+        }
+    }
 
-        
+    private void UpdateCurrentTarget()
+    {
+        if (pile.Count > 0)
+        {
+            currenttarget = pile.Peek().transform;
+        }
+        else
+        {
+            currenttarget = transform;
+        }
+    }
+
+    private void UpdateMovesUI()
+    {
+        _movesUI.text = (moveLimit - moveCount).ToString();
+    }
+
+    // 🔹 Appelé par GameManager quand difficulté change
+    public void SetMoveLimit(int newLimit)
+    {
+        moveLimit = newLimit;
+        moveCount = 0;
+        UpdateMovesUI();
+    }
+
+    // 🔹 Reset après bonne réponse
+    public void ResetMoves()
+    {
+        moveCount = 0;
+        pile.Clear();
+        UpdateMovesUI();
     }
 }

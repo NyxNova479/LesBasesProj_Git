@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using Unity.AI.Navigation;
@@ -8,7 +8,9 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+
     public enum Difficulty { Easy, Medium, Hard }
+    public enum Operation { Add, Subtract, Multiply, Divide }
 
     [Header("Scene References")]
     [SerializeField] private Transform camPos;
@@ -33,33 +35,32 @@ public class GameManager : MonoBehaviour
     private static Color32 WRONGANSWER = new Color(50, 0, 0, 255);
 
     public float delta = 0;
-    private float answTimeLim = 5f;
+    private float currentTimeLimit;
+    private float minimumTime = 2f;
+
     private bool isBlinking = false;
-
-    private Dictionary<string, int[]> questions = new Dictionary<string, int[]>();
-
-    private string currentQuestion = "";
     private bool questionCreated = false;
+    private bool solutionInjected = false;
 
     public int membreA = 0;
     public int membreB = 0;
+    private int correctResult = 0;
+    private Operation currentOperation;
+
     private int goodCount = 0;
 
     public Difficulty currentDifficulty = Difficulty.Easy;
     private int thresholdToTrigger;
     private bool difficultyMenuActive = false;
 
+    private List<Operation> allowedOperations = new List<Operation>();
+
     void Start()
     {
         startPos = camPos.position;
         ground.GetComponent<Renderer>().material.color = BASECOLOR;
 
-        questions.Add("Easy", new int[5]);
-        questions.Add("Medium", new int[10]);
-        questions.Add("Hard", new int[20]);
-
-        SetThreshold();
-        InitializeQuestions(currentDifficulty.ToString());
+        ApplyDifficultySettings();
         CreateQuestion();
     }
 
@@ -67,112 +68,185 @@ public class GameManager : MonoBehaviour
     {
         if (difficultyMenuActive) return;
 
-        if (!questionCreated) CreateQuestion();
+        if (!questionCreated)
+            CreateQuestion();
+
+        delta += Time.deltaTime;
+        float remaining = currentTimeLimit - delta;
+
+        timeUI.text = Mathf.Max(0, remaining).ToString("F0");
+
+        if (currentDifficulty == Difficulty.Easy && !solutionInjected && delta >= currentTimeLimit - 30f)
+        {
+            spawnNumbers.EnsureSolutionExists(correctResult, currentDifficulty);
+            solutionInjected = true;
+        }
+
+        if (remaining <= 0)
+        {
+            camPos.position = new Vector3(
+                camPos.position.x,
+                camPos.position.y - (delta / 500f),
+                camPos.position.z);
+        }
 
         if (camPos.position.y <= 10 && !isBlinking)
         {
-            isBlinking = true;
-            StartCoroutine(DecideResult(membreA, membreB));
-        }
-        else if (camPos.position.y <= 10)
-        {
             delta = 0;
-        }
-        else
-        {
-            delta += Time.deltaTime;
-
-            if (answTimeLim - delta >= 0)
-                timeUI.text = (answTimeLim - delta).ToString("F0");
-            else
-                timeUI.text = "0";
-
-            MoveCamera(delta);
+            isBlinking = true;
+            StartCoroutine(DecideResult());
         }
     }
 
-    private void SetThreshold()
+    private void ApplyDifficultySettings()
     {
+        allowedOperations.Clear();
+
         switch (currentDifficulty)
         {
             case Difficulty.Easy:
+                allowedOperations.Add(Operation.Add);
+                currentTimeLimit = 50f;
+                targetSpawner.SetMoveLimit(5);
                 thresholdToTrigger = 3;
                 break;
+
             case Difficulty.Medium:
+                allowedOperations.Add(Operation.Add);
+                allowedOperations.Add(Operation.Subtract);
+                currentTimeLimit = 40f;
+                targetSpawner.SetMoveLimit(4);
                 thresholdToTrigger = 5;
                 break;
+
             case Difficulty.Hard:
+                allowedOperations.Add(Operation.Add);
+                allowedOperations.Add(Operation.Subtract);
+                allowedOperations.Add(Operation.Multiply);
+                allowedOperations.Add(Operation.Divide);
+                currentTimeLimit = 30f;
+                targetSpawner.SetMoveLimit(3);
                 thresholdToTrigger = 8;
                 break;
         }
-    }
 
-    private void InitializeQuestions(string mode)
-    {
-        for (int i = 0; i < questions[mode].Length; i++)
-        {
-            questions[mode][i] = UnityEngine.Random.Range(1, spawnNumbers.partyMaxNumb());
-        }
+        delta = 0;
     }
 
     private void CreateQuestion()
     {
-        questionsUI.text = "";
+        delta = 0;
+        isBlinking = false;
 
-        string mode = currentDifficulty.ToString();
+        currentOperation = allowedOperations[Random.Range(0, allowedOperations.Count)];
 
-        membreA = questions[mode][UnityEngine.Random.Range(0, questions[mode].Length)];
-        membreB = questions[mode][UnityEngine.Random.Range(0, questions[mode].Length)];
+        bool validQuestion = false;
 
-        currentQuestion = $"{membreA} + {membreB}";
-        questionsUI.text = currentQuestion;
+        while (!validQuestion)
+        {
+            switch (currentOperation)
+            {
+                case Operation.Add:
+                    membreA = Random.Range(1, 10);
+                    membreB = Random.Range(1, 10);
+                    correctResult = membreA + membreB;
+                    break;
+
+                case Operation.Subtract:
+                    membreA = Random.Range(1, 10);
+                    membreB = Random.Range(1, 10);
+
+                    if (membreB > membreA)
+                    {
+                        int temp = membreA;
+                        membreA = membreB;
+                        membreB = temp;
+                    }
+
+                    correctResult = membreA - membreB;
+                    break;
+
+                case Operation.Multiply:
+                    membreA = Random.Range(1, 11);
+                    membreB = Random.Range(1, 11);
+                    correctResult = membreA * membreB;
+                    break;
+
+                case Operation.Divide:
+                    membreB = Random.Range(1, 11);
+                    correctResult = Random.Range(1, 11);
+                    membreA = membreB * correctResult;
+                    break;
+            }
+
+            // Vérifie que le résultat est constructible (1 à 10)
+            if (correctResult >= 1 && correctResult <= 10)
+            {
+                validQuestion = true;
+            }
+            else
+            {
+                // sinon on regénère une nouvelle opération
+                currentOperation = allowedOperations[Random.Range(0, allowedOperations.Count)];
+            }
+        }
+
+        string symbol = "+";
+        if (currentOperation == Operation.Subtract) symbol = "-";
+        if (currentOperation == Operation.Multiply) symbol = "×";
+        if (currentOperation == Operation.Divide) symbol = "÷";
+
+        questionsUI.text = $"{membreA} {symbol} {membreB}";
+
 
         questionCreated = true;
-        isBlinking = false;
+        solutionInjected = false;
     }
 
-    private void MoveCamera(float delta)
+    public bool IsCorrect()
     {
-        if (delta >= answTimeLim)
+        return player.GetComponent<PlayerBehaviour>().PlayerAnswer() == correctResult;
+    }
+
+    private IEnumerator DecideResult()
+    {
+
+        // 🔹 Clignotement
+        for (int i = 0; i < 3; i++)
         {
-            camPos.position = new Vector3(camPos.position.x,camPos.position.y - (delta / 150f),camPos.position.z);
-        }
-    }
-
-    private int currentResult(int a, int b)
-    {
-        return a + b;
-    }
-
-    public bool isCorrect(int membreA, int membreB)
-    {
-        return currentResult(membreA, membreB) == player.GetComponent<PlayerBehaviour>().PlayerAnswer();
-    }
-
-    private IEnumerator DecideResult(int a, int b)
-    {
-        for (int i = 0; i <= 2; i++)
-        {
-            yield return new WaitForSeconds(0.5f);
             ground.GetComponent<Renderer>().material.color = INVISIBLE;
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.3f);
+
             ground.GetComponent<Renderer>().material.color = BASECOLOR;
+            yield return new WaitForSeconds(0.3f);
         }
 
-        if (!isCorrect(a, b))
+        //  Si FAUX
+        if (!IsCorrect())
         {
-            yield return new WaitForSeconds(1f);
             ground.GetComponent<Renderer>().material.color = WRONGANSWER;
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.8f);
 
-            player.GetComponent<NavMeshAgent>().enabled = false;
-            ground.GetComponent<NavMeshSurface>().enabled = false;
+            //  Désactivation du déplacement
+            player.GetComponent<UnityEngine.AI.NavMeshAgent>().enabled = false;
+
+            //  Désactivation du NavMesh
+            ground.GetComponent<Unity.AI.Navigation.NavMeshSurface>().enabled = false;
+
+            // Désactivation visuelle du sol
             ground.SetActive(false);
+
+            yield return new WaitForSeconds(0.5f);
 
             StartCoroutine(ShowGameOver());
         }
         else
         {
+            //  Si BON
+            ground.GetComponent<Renderer>().material.color = CORRECTANSWER;
+            
+            yield return new WaitForSeconds(0.8f);
+
             StartCoroutine(ResetGame());
         }
     }
@@ -180,10 +254,13 @@ public class GameManager : MonoBehaviour
     private IEnumerator ResetGame()
     {
         spawnNumbers.ClearNumbers();
+
         yield return new WaitForSeconds(1f);
         ground.GetComponent<Renderer>().material.color = CORRECTANSWER;
 
         goodCount++;
+
+        currentTimeLimit = Mathf.Max(minimumTime, currentTimeLimit - 5f);
 
         if (goodCount >= thresholdToTrigger)
         {
@@ -195,16 +272,12 @@ public class GameManager : MonoBehaviour
 
         camPos.position = startPos;
         questionCreated = false;
-
-        yield return new WaitForSeconds(1f);
-
         ground.GetComponent<Renderer>().material.color = BASECOLOR;
 
-        delta = 0;
         player.GetComponent<PlayerBehaviour>().EmptyInventory();
-        player.transform.position = player.GetComponent<PlayerBehaviour>().startPos;
-        targetSpawner.moveCount = 0;
-        targetSpawner._movesUI.text = "" + targetSpawner.moveLimit;
+        targetSpawner.ResetMoves();
+
+        delta = 0;
     }
 
     private void TriggerDifficultyMenu()
@@ -217,17 +290,18 @@ public class GameManager : MonoBehaviour
         increaseButton.interactable = currentDifficulty != Difficulty.Hard;
     }
 
-    public void ContinueSameDifficulty()
-    {
-        ResetGame();
-        ResumeGame();
-    }
-
     public void IncreaseDifficulty()
     {
         if (currentDifficulty != Difficulty.Hard)
             currentDifficulty++;
-        ResetGame();
+        camPos.position = startPos;
+        questionCreated = false;
+        ground.GetComponent<Renderer>().material.color = BASECOLOR;
+
+        player.GetComponent<PlayerBehaviour>().EmptyInventory();
+        targetSpawner.ResetMoves();
+
+        delta = 0;
         ResumeGame();
     }
 
@@ -235,7 +309,27 @@ public class GameManager : MonoBehaviour
     {
         if (currentDifficulty != Difficulty.Easy)
             currentDifficulty--;
-        ResetGame();
+        camPos.position = startPos;
+        questionCreated = false;
+        ground.GetComponent<Renderer>().material.color = BASECOLOR;
+
+        player.GetComponent<PlayerBehaviour>().EmptyInventory();
+        targetSpawner.ResetMoves();
+
+        delta = 0;
+        ResumeGame();
+    }
+
+    public void ContinueSameDifficulty()
+    {
+        camPos.position = startPos;
+        questionCreated = false;
+        ground.GetComponent<Renderer>().material.color = BASECOLOR;
+
+        player.GetComponent<PlayerBehaviour>().EmptyInventory();
+        targetSpawner.ResetMoves();
+
+        delta = 0;
         ResumeGame();
     }
 
@@ -247,12 +341,11 @@ public class GameManager : MonoBehaviour
 
         goodCount = 0;
 
-        SetThreshold();
-        InitializeQuestions(currentDifficulty.ToString());
-
-        questionCreated = false;
-        delta = 0;
+        ApplyDifficultySettings();
+        CreateQuestion();
     }
+
+
 
     private IEnumerator ShowGameOver()
     {
