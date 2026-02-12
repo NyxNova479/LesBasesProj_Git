@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     private static Color32 WRONGANSWER = new Color(50, 0, 0, 255);
 
     public float delta = 0;
-    private float answTimeLim = 5f;
+    private float answTimeLim = 50f;
     private bool isBlinking = false;
 
     private Dictionary<string, int[]> questions = new Dictionary<string, int[]>();
@@ -41,8 +41,8 @@ public class GameManager : MonoBehaviour
     private string currentQuestion = "";
     private bool questionCreated = false;
 
-    private int membreA = 0;
-    private int membreB = 0;
+    public int membreA = 0;
+    public int membreB = 0;
     private int goodCount = 0;
 
     private Difficulty currentDifficulty = Difficulty.Easy;
@@ -67,8 +67,7 @@ public class GameManager : MonoBehaviour
     {
         if (difficultyMenuActive) return;
 
-        if (!questionCreated)
-            CreateQuestion();
+        if (!questionCreated) CreateQuestion();
 
         if (camPos.position.y <= 10 && !isBlinking)
         {
@@ -145,7 +144,7 @@ public class GameManager : MonoBehaviour
         return a + b;
     }
 
-    private bool isCorrect(int membreA, int membreB)
+    public bool isCorrect(int membreA, int membreB)
     {
         return currentResult(membreA, membreB) == player.GetComponent<PlayerBehaviour>().PlayerAnswer();
     }
@@ -180,6 +179,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ResetGame()
     {
+        spawnNumbers.ClearNumbers();
         yield return new WaitForSeconds(1f);
         ground.GetComponent<Renderer>().material.color = CORRECTANSWER;
 

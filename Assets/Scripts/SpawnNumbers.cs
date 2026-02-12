@@ -13,8 +13,11 @@ using TMPro;
 public class SpawnNumbers : MonoBehaviour
 {
 
+
+
     [SerializeField]
     private List<NumberData> numberPrefabs;
+    private List<GameObject> spawnedNumb = new List<GameObject>();
     [SerializeField] private Transform[] spawnPositions = new Transform[5];
     [SerializeField] private TextMeshProUGUI _numbersUI;
     [SerializeField] private TextMeshProUGUI _waitingNumbUI;
@@ -114,10 +117,20 @@ public class SpawnNumbers : MonoBehaviour
             AjouterALaFile(willSpawn);
 
             UpdateFileUI();
-            
+
         }
         SpawnFromFile();
 
+
+
+    }
+
+    public void ClearNumbers()
+    {
+        foreach (GameObject prefabs in spawnedNumb)
+        {
+            Destroy(prefabs);
+        }
     }
 
     // Update is called once per frame
@@ -149,6 +162,7 @@ public class SpawnNumbers : MonoBehaviour
         Transform rngPos = spawnPositions[UnityEngine.Random.Range(0, spawnPositions.Length)];
         GameObject number = Instantiate(goOriginal.prefab, rngPos.position, Quaternion.Euler(90,0,0));
         number.transform.localScale = new Vector3(0.5f,0.5f,0.5f);
+        spawnedNumb.Add(number);
     }
 
     public void AjouterALaFile(NumberData number)
@@ -163,6 +177,7 @@ public class SpawnNumbers : MonoBehaviour
         SpawnGOFromOriginal(numberData);
         isSpawning = false;
         if (file.Count() == 0) _spawningNumbUI.text = "";
+        
 
 
 
@@ -182,6 +197,7 @@ public class SpawnNumbers : MonoBehaviour
                 UpdateFileUI();
                 _spawningNumbUI.text = "" + hasToSpawn.name;
                 StartCoroutine(SpawnAfterDelay(hasToSpawn));
+                
 
             }
         }
