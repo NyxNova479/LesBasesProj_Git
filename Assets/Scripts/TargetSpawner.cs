@@ -15,11 +15,11 @@ public class TargetSpawner : MonoBehaviour
 
 
     
-    private int moveLimit;
+    public int moveLimit;
     public int moveCount = 0;
 
     [SerializeField]
-    private TextMeshProUGUI _movesUI;
+    public TextMeshProUGUI _movesUI;
 
     private Transform mousePosition;
     public Transform currenttarget;

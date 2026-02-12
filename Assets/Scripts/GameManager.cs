@@ -33,7 +33,7 @@ public class GameManager : MonoBehaviour
     private static Color32 WRONGANSWER = new Color(50, 0, 0, 255);
 
     public float delta = 0;
-    private float answTimeLim = 50f;
+    private float answTimeLim = 5f;
     private bool isBlinking = false;
 
     private Dictionary<string, int[]> questions = new Dictionary<string, int[]>();
@@ -45,7 +45,7 @@ public class GameManager : MonoBehaviour
     public int membreB = 0;
     private int goodCount = 0;
 
-    private Difficulty currentDifficulty = Difficulty.Easy;
+    public Difficulty currentDifficulty = Difficulty.Easy;
     private int thresholdToTrigger;
     private bool difficultyMenuActive = false;
 
@@ -135,7 +135,7 @@ public class GameManager : MonoBehaviour
     {
         if (delta >= answTimeLim)
         {
-            camPos.position = new Vector3(camPos.position.x,camPos.position.y - (delta / 100f),camPos.position.z);
+            camPos.position = new Vector3(camPos.position.x,camPos.position.y - (delta / 150f),camPos.position.z);
         }
     }
 
@@ -204,6 +204,7 @@ public class GameManager : MonoBehaviour
         player.GetComponent<PlayerBehaviour>().EmptyInventory();
         player.transform.position = player.GetComponent<PlayerBehaviour>().startPos;
         targetSpawner.moveCount = 0;
+        targetSpawner._movesUI.text = "" + targetSpawner.moveLimit;
     }
 
     private void TriggerDifficultyMenu()
@@ -218,6 +219,7 @@ public class GameManager : MonoBehaviour
 
     public void ContinueSameDifficulty()
     {
+        ResetGame();
         ResumeGame();
     }
 

@@ -1,14 +1,15 @@
+using System;
 using System.Collections.Generic;
+using TMPro;
+using Unity.AI.Navigation;
+using Unity.UIElements;
 using UnityEditor.Rendering;
+using UnityEditor.UI;
 using UnityEngine;
 using UnityEngine.AI;
-using Unity.UIElements;
-using UnityEngine.UIElements;
-using UnityEditor.UI;
 using UnityEngine.UI;
-using TMPro;
-using System;
-using Unity.AI.Navigation;
+using UnityEngine.UIElements;
+using static UnityEngine.Rendering.DebugUI;
 
 public class PlayerBehaviour : MonoBehaviour
 {
@@ -18,10 +19,14 @@ public class PlayerBehaviour : MonoBehaviour
 
     [SerializeField]
     private TargetSpawner targetSpawner;
+    [SerializeField]
+    private GameManager gameManager;
+
 
     [SerializeField] private TextMeshProUGUI inventoryUI;
     [SerializeField] private GameObject panel;
-    public Dictionary<NumberData, int> inventory;
+    public Dictionary<NumberData, int> inventory = new Dictionary<NumberData, int>();
+    private Stack<NumberData> inventoryHistory = new Stack<NumberData>();
 
     public Vector3 startPos;
 
@@ -29,7 +34,6 @@ public class PlayerBehaviour : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        inventory = new Dictionary<NumberData, int>();
         player = GetComponent<NavMeshAgent>();
         panel.SetActive(false);
         startPos = gameObject.transform.position;
@@ -44,12 +48,19 @@ public class PlayerBehaviour : MonoBehaviour
 
         }
 
-
-
-        if (Input.GetKeyDown(KeyCode.I))
+        if (Input.GetKeyDown(KeyCode.I) && gameManager.currentDifficulty != GameManager.Difficulty.Hard)
         {
             ShowInventory();
         }
+        
+        if (Input.GetKeyDown(KeyCode.Backspace))
+        {
+            UndoLastNumber();
+            UpdateInventoryUI();
+        }
+
+
+
     }
 
     private void ShowInventory()
@@ -97,17 +108,26 @@ public class PlayerBehaviour : MonoBehaviour
             Destroy(collision.gameObject);
         }
 
+
     }
 
     public void AddNumber(NumberData data)
     {
-        if (inventory.ContainsKey(data))
-            inventory[data]++;
-        else
-            inventory.Add(data, 1);
-
+        if (inventory.ContainsKey(data)) inventory[data]++;
+        else inventory.Add(data, 1);
+        inventoryHistory.Push(data);
         UpdateInventoryUI();
     }
 
+    public void UndoLastNumber()
+    {
+        if (inventoryHistory.Count == 0) return;
+
+        NumberData lastNumber = inventoryHistory.Pop();
+
+        inventory[lastNumber]--;
+
+        if (inventory[lastNumber] <= 0) inventory.Remove(lastNumber);
+    }
 
 }
