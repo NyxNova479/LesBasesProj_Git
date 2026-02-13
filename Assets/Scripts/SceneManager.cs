@@ -9,7 +9,18 @@ public class MainMenu : MonoBehaviour
 {
     [SerializeField] GameObject controls;
     [SerializeField] GameObject modes;
+    [SerializeField] AudioClip backMusic;
+    private AudioSource audioSource;
+
     private int inputCount = 0;
+
+
+    private void Start()
+    {
+        audioSource = GetComponent<AudioSource>();
+        audioSource.PlayOneShot(backMusic, 0.5f);
+    }
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space) )
@@ -37,4 +48,9 @@ public class MainMenu : MonoBehaviour
     {
         SceneManager.LoadSceneAsync(scene);
     }
+
+
+    
+
+    
 }

@@ -65,6 +65,11 @@ public class TargetSpawner : MonoBehaviour
 
     private void UpdateCurrentTarget()
     {
+        while (pile.Count > 0 && pile.Peek() == null)
+        {
+            pile.Pop(); // retire les références détruites
+        }
+
         if (pile.Count > 0)
         {
             currenttarget = pile.Peek().transform;

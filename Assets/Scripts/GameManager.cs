@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI questionsUI;
     [SerializeField] private TextMeshProUGUI scoreUI;
     [SerializeField] private TextMeshProUGUI timeUI;
-    [SerializeField] private MainMenu mainMenu;
     [SerializeField] private GameObject pauseMenu;
     private bool isPaused = false;
 
@@ -38,6 +37,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI easyScore;
     [SerializeField] private TextMeshProUGUI mediumScore;
     [SerializeField] private TextMeshProUGUI hardScore;
+
+    [Header("Sounds")]
+    private AudioSource audioSource;
+    [SerializeField] AudioClip drumRolls;
+    [SerializeField] AudioClip wrongSound;
+    [SerializeField] AudioClip correctSound;
+    [SerializeField] AudioClip gameOverSound;
 
 
     private Vector3 startPos;
@@ -71,6 +77,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
         startPos = camPos.position;
         ground.GetComponent<Renderer>().material.color = BASECOLOR;
 
@@ -101,21 +108,27 @@ public class GameManager : MonoBehaviour
 
         timeUI.text = Mathf.Max(0, remaining).ToString("F0");
 
+
         if (currentDifficulty == Difficulty.Easy && !solutionInjected && delta >= currentTimeLimit - (currentTimeLimit/2))
         {
             spawnNumbers.EnsureSolutionExists(correctResult, currentDifficulty);
             solutionInjected = true;
         }
 
-        if (remaining <= 0)
+        if (remaining <= 0) 
         {
+            
             camPos.position = new Vector3(
                 camPos.position.x,
                 camPos.position.y - (delta / 5000f),
                 camPos.position.z);
         }
+        if (remaining <= 0 && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
 
-        if (camPos.position.y <= 10 && !isBlinking)
+            if (camPos.position.y <= 10 && !isBlinking)
         {
             delta = 0;
             isBlinking = true;
@@ -173,6 +186,11 @@ public class GameManager : MonoBehaviour
 
     private void CreateQuestion()
     {
+        if(!audioSource.isPlaying)
+        {
+            audioSource.Play();
+        }
+
         delta = 0;
         isBlinking = false;
 
@@ -250,7 +268,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator DecideResult()
     {
-
+        audioSource.PlayOneShot(drumRolls, 0.7f);
         // 🔹 Clignotement
         for (int i = 0; i < 3; i++)
         {
@@ -264,7 +282,9 @@ public class GameManager : MonoBehaviour
         //  Si FAUX
         if (!IsCorrect())
         {
+            yield return new WaitForSeconds(1f);
             ground.GetComponent<Renderer>().material.color = WRONGANSWER;
+            audioSource.PlayOneShot(wrongSound, 0.5f);
             yield return new WaitForSeconds(0.8f);
 
             //  Désactivation du déplacement
@@ -283,7 +303,9 @@ public class GameManager : MonoBehaviour
         else
         {
             //  Si BON
+            yield return new WaitForSeconds(1f);
             ground.GetComponent<Renderer>().material.color = CORRECTANSWER;
+            audioSource.PlayOneShot(correctSound, 0.5f);
             
             yield return new WaitForSeconds(0.8f);
 
@@ -395,6 +417,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator ShowGameOver()
     {
+        audioSource.PlayOneShot(gameOverSound);
         for (int i = 0; i < "Game Over".Length; i++)
         {
             gameOverUI.text += "Game Over"[i];
