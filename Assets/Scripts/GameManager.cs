@@ -5,6 +5,7 @@ using Unity.AI.Navigation;
 using UnityEngine.AI;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -22,11 +23,22 @@ public class GameManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI questionsUI;
     [SerializeField] private TextMeshProUGUI scoreUI;
     [SerializeField] private TextMeshProUGUI timeUI;
+    [SerializeField] private MainMenu mainMenu;
+    [SerializeField] private GameObject pauseMenu;
+    private bool isPaused = false;
 
     [Header("Difficulty UI")]
     [SerializeField] private GameObject difficultyUI;
     [SerializeField] private Button increaseButton;
     [SerializeField] private Button decreaseButton;
+
+
+    [Header("Score UI")]
+    [SerializeField] private GameObject scorePanel;
+    [SerializeField] private TextMeshProUGUI easyScore;
+    [SerializeField] private TextMeshProUGUI mediumScore;
+    [SerializeField] private TextMeshProUGUI hardScore;
+
 
     private Vector3 startPos;
 
@@ -53,6 +65,7 @@ public class GameManager : MonoBehaviour
     public Difficulty currentDifficulty = Difficulty.Easy;
     private int thresholdToTrigger;
     private bool difficultyMenuActive = false;
+    private Dictionary<Difficulty, int> scoreByDifficulty = new Dictionary<Difficulty, int>();
 
     private List<Operation> allowedOperations = new List<Operation>();
 
@@ -61,6 +74,9 @@ public class GameManager : MonoBehaviour
         startPos = camPos.position;
         ground.GetComponent<Renderer>().material.color = BASECOLOR;
 
+        scoreByDifficulty[Difficulty.Easy] = 0;
+        scoreByDifficulty[Difficulty.Medium] = 0;
+        scoreByDifficulty[Difficulty.Hard] = 0;
 
         ApplyDifficultySettings();
         scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
@@ -69,6 +85,12 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePause();
+        }
+
         if (difficultyMenuActive) return;
 
         if (!questionCreated)
@@ -101,6 +123,19 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public void TogglePause()
+    {
+        isPaused = !isPaused;
+
+        pauseMenu.SetActive(isPaused);
+        Time.timeScale = isPaused ? 0f : 1f;
+    }
+
+    public void ReturnToMenu()
+    {
+        SceneManager.LoadSceneAsync(0);
+    }
+
     private void ApplyDifficultySettings()
     {
         allowedOperations.Clear();
@@ -111,7 +146,7 @@ public class GameManager : MonoBehaviour
                 allowedOperations.Add(Operation.Add);
                 currentTimeLimit = 50f;
                 targetSpawner.SetMoveLimit(5);
-                thresholdToTrigger = 3;
+                thresholdToTrigger = 10;
                 break;
 
             case Difficulty.Medium:
@@ -119,7 +154,7 @@ public class GameManager : MonoBehaviour
                 allowedOperations.Add(Operation.Subtract);
                 currentTimeLimit = 40f;
                 targetSpawner.SetMoveLimit(4);
-                thresholdToTrigger = 5;
+                thresholdToTrigger = 15;
                 break;
 
             case Difficulty.Hard:
@@ -129,7 +164,7 @@ public class GameManager : MonoBehaviour
                 allowedOperations.Add(Operation.Divide);
                 currentTimeLimit = 30f;
                 targetSpawner.SetMoveLimit(3);
-                thresholdToTrigger = 8;
+                thresholdToTrigger = 20;
                 break;
         }
 
@@ -266,6 +301,7 @@ public class GameManager : MonoBehaviour
 
         goodCount++;
         scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
+        scoreByDifficulty[currentDifficulty]++;
         currentTimeLimit = Mathf.Max(minimumTime, currentTimeLimit - 5f);
 
         if (goodCount >= thresholdToTrigger)
@@ -309,6 +345,7 @@ public class GameManager : MonoBehaviour
         targetSpawner.ResetMoves();
 
         delta = 0;
+        scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
         ResumeGame();
     }
 
@@ -324,6 +361,7 @@ public class GameManager : MonoBehaviour
         targetSpawner.ResetMoves();
 
         delta = 0;
+        scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
         ResumeGame();
     }
 
@@ -337,6 +375,7 @@ public class GameManager : MonoBehaviour
         targetSpawner.ResetMoves();
 
         delta = 0;
+        scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
         ResumeGame();
     }
 
@@ -361,5 +400,13 @@ public class GameManager : MonoBehaviour
             gameOverUI.text += "Game Over"[i];
             yield return new WaitForSeconds(0.5f);
         }
+
+        Time.timeScale = 0f;
+
+        scorePanel.SetActive(true);
+
+        easyScore.text = "Easy: " + scoreByDifficulty[Difficulty.Easy] + "/" + 10;
+        mediumScore.text = "Medium: " + scoreByDifficulty[Difficulty.Medium] + "/" + 15;
+        hardScore.text = "Hard: " + scoreByDifficulty[Difficulty.Hard] + "/" + 20;
     }
 }

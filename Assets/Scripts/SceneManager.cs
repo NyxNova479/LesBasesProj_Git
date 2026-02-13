@@ -18,7 +18,7 @@ public class MainMenu : MonoBehaviour
             inputCount++;
             
         }
-        if(inputCount < 2)
+        if(inputCount == 1)
         {
             controls.SetActive(true);
         }
@@ -29,12 +29,12 @@ public class MainMenu : MonoBehaviour
         }
         if(inputCount > 2)
         {
-            LoadGame();
+            LoadGame(1);
         }
     }
 
-    private void LoadGame()
+    public void LoadGame(int scene)
     {
-        if (Input.GetKeyDown(KeyCode.Space)) SceneManager.LoadSceneAsync(1);
+        SceneManager.LoadSceneAsync(scene);
     }
 }
