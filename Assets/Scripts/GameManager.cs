@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private SpawnNumbers spawnNumbers;
     [SerializeField] private TextMeshProUGUI gameOverUI;
     [SerializeField] private TextMeshProUGUI questionsUI;
+    [SerializeField] private TextMeshProUGUI scoreUI;
     [SerializeField] private TextMeshProUGUI timeUI;
 
     [Header("Difficulty UI")]
@@ -60,7 +61,9 @@ public class GameManager : MonoBehaviour
         startPos = camPos.position;
         ground.GetComponent<Renderer>().material.color = BASECOLOR;
 
+
         ApplyDifficultySettings();
+        scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
         CreateQuestion();
     }
 
@@ -198,6 +201,8 @@ public class GameManager : MonoBehaviour
 
         questionsUI.text = $"{membreA} {symbol} {membreB}";
 
+        spawnNumbers.GenerateAvailableNumbers(currentDifficulty,membreA,membreB);
+
 
         questionCreated = true;
         solutionInjected = false;
@@ -249,6 +254,7 @@ public class GameManager : MonoBehaviour
 
             StartCoroutine(ResetGame());
         }
+
     }
 
     private IEnumerator ResetGame()
@@ -259,12 +265,13 @@ public class GameManager : MonoBehaviour
         ground.GetComponent<Renderer>().material.color = CORRECTANSWER;
 
         goodCount++;
-
+        scoreUI.text = $"{goodCount}/{thresholdToTrigger}";
         currentTimeLimit = Mathf.Max(minimumTime, currentTimeLimit - 5f);
 
         if (goodCount >= thresholdToTrigger)
         {
             TriggerDifficultyMenu();
+            goodCount = 0;
             yield break;
         }
 

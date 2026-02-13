@@ -27,28 +27,45 @@ public class SpawnNumbers : MonoBehaviour
 
     void Start()
     {
-        GenerateAvailableNumbers();
+
     }
 
     // --------------------------------------------------
     // 🔹 GÉNÉRATION DES NOMBRES DISPONIBLES
     // --------------------------------------------------
 
-    public void GenerateAvailableNumbers()
+    public void GenerateAvailableNumbers(GameManager.Difficulty difficulty, int membreA, int membreB)
     {
         numberPrefabs.Clear();
         _numbersUI.text = "";
 
-        int count = UnityEngine.Random.Range(4, 8);
-
         List<NumberData> tempList = new List<NumberData>(allNumberPrefabs);
 
-        for (int i = 0; i < count; i++)
-        {
-            if (tempList.Count == 0) break;
+        int count = UnityEngine.Random.Range(4, 8);
 
+        // 🔹 EASY → garantir présence
+        if (difficulty == GameManager.Difficulty.Easy)
+        {
+            AddIfExists(membreA);
+            AddIfExists(membreB);
+        }
+
+        // 🔹 HARD → retirer opérandes
+        if (difficulty == GameManager.Difficulty.Hard)
+        {
+            tempList.RemoveAll(x =>
+                x.buildTime == membreA ||
+                x.buildTime == membreB);
+        }
+
+        // 🔹 Compléter aléatoirement
+        while (numberPrefabs.Count < count && tempList.Count > 0)
+        {
             int rng = UnityEngine.Random.Range(0, tempList.Count);
-            numberPrefabs.Add(tempList[rng]);
+
+            if (!numberPrefabs.Contains(tempList[rng]))
+                numberPrefabs.Add(tempList[rng]);
+
             tempList.RemoveAt(rng);
         }
 
@@ -144,6 +161,21 @@ public class SpawnNumbers : MonoBehaviour
         spawnedNumb.Add(number);
     }
 
+    private void AddIfExists(int value)
+    {
+        NumberData match = allNumberPrefabs
+            .FirstOrDefault(x => x.buildTime == value);
+
+        if (match != null && !numberPrefabs.Contains(match))
+        {
+            numberPrefabs.Add(match);
+        }
+    }
+
+
+
+
+
     // --------------------------------------------------
     // 🔹 CLEAR ENTRE QUESTIONS
     // --------------------------------------------------
@@ -161,7 +193,7 @@ public class SpawnNumbers : MonoBehaviour
         UpdateFileUI();
         _spawningNumbUI.text = "";
 
-        GenerateAvailableNumbers();
+
     }
 
     // --------------------------------------------------

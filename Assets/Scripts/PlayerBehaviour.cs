@@ -12,6 +12,7 @@ public class PlayerBehaviour : MonoBehaviour
     [SerializeField] private GameManager gameManager;
 
     [SerializeField] private TextMeshProUGUI inventoryUI;
+    [SerializeField] private TextMeshProUGUI undoUI;
     [SerializeField] private GameObject panel;
 
     public Dictionary<NumberData, int> inventory = new Dictionary<NumberData, int>();
@@ -30,6 +31,7 @@ public class PlayerBehaviour : MonoBehaviour
         panel.SetActive(false);
         startPos = transform.position;
         ConfigureUndo(gameManager.currentDifficulty);
+
     }
 
     void Update()
@@ -69,6 +71,11 @@ public class PlayerBehaviour : MonoBehaviour
         {
             inventoryUI.text += $"{entry.Key.numberName} x{entry.Value}\n";
         }
+        if(gameManager.currentDifficulty == GameManager.Difficulty.Easy)
+        {
+            undoUI.text = $"{undoUsed}/inf";
+        }
+        else undoUI.text = $"{undoUsed}/{undoLimit}";
     }
 
     public void EmptyInventory()
@@ -131,7 +138,7 @@ public class PlayerBehaviour : MonoBehaviour
             if (inventory[last] <= 0)
                 inventory.Remove(last);
         }
-
+        undoUsed++;
         UpdateInventoryUI();
     }
 
@@ -153,5 +160,10 @@ public class PlayerBehaviour : MonoBehaviour
                 undoLimit = 0;
                 break;
         }
+        if (difficulty == GameManager.Difficulty.Easy)
+        {
+            undoUI.text = $"{undoUsed}/inf";
+        }
+        else undoUI.text = $"{undoUsed}/{undoLimit}";
     }
 }
